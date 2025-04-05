@@ -22,6 +22,27 @@ export const validateCookie = async (cookie: string): Promise<boolean> => {
 };
 
 /**
+ * Returns an Authorization header with the API key.
+ * @returns {object} The header to be used in requests.
+ */
+export const validateApiKey = async (apiKey: string): Promise<boolean> => {
+     try {
+         const response = await axios.get(ROBLOX_AUTH_URL, {
+             headers: {
+                 Authorization: `${apiKey}`,
+             },
+         });
+
+         //console.log(response);
+
+         return response.status === 200;
+     } catch (error) {
+         console.error("Error validating cookie:", error);
+         return false;
+     }
+};
+
+/**
  * Fetches the authenticated user data from Roblox.
  * @param {string} cookie The .ROBLOSECURITY cookie.
  * @returns {Promise<any>} The authenticated user data, or null if invalid.

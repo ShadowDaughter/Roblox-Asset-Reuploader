@@ -1,16 +1,14 @@
-import axios from "axios";
 import readline from "readline";
 import * as fs from "fs";
 import dotenv from "dotenv";
 import { validateCookie } from "../services/robloxApi";
 
-dotenv.config();
-
-const ROBLOX_AUTH_URL = "https://users.roblox.com/v1/users/authenticated";
 const rl = readline.createInterface({
     input: process.stdin,
     output: process.stdout,
 });
+
+dotenv.config();
 
 /**
  * Reads the cookie from the .env file.

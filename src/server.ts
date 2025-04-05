@@ -1,7 +1,8 @@
 import express from "express";
 import { Router } from "express";
 import { generateEnvFile } from "./utils/dotenv";
-import { getCookieFromUserInput, updateEnvFile } from "./utils/cookie";
+import { getCookieFromUserInput } from "./utils/cookie";
+import { getApiKeyFromUserInput } from "./utils/apiKey";
 const router = Router();
 
 router.get("/", (req, res) => {
@@ -19,6 +20,7 @@ export const startServer = async () => {
     const PORT = 5544;
 
     const cookie = await getCookieFromUserInput();
+    const apiKey = await getApiKeyFromUserInput();
 
     app.use(express.json());
     app.use("/", router);
