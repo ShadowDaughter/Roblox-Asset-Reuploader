@@ -122,6 +122,7 @@ router.get("/", (req, res) => {
 
     if (isUploadDone) {
         if (hasStarted) {
+            log.info("Finished uploading all assets!");
             log.info("You may close this terminal, or leave it open to reupload more assets.");
         }
 
