@@ -1,12 +1,12 @@
 import express from "express";
 import dotenv from "dotenv";
 import { generateEnvFile } from "./utils/dotenv";
-import { getCookieFromUserInput } from "./utils/cookie";
-import { getApiKeyFromUserInput } from "./utils/apiKey";
+import { getEnvInput } from "./utils/inputManager";
 import { log } from "./utils/logger";
 import router from "./routes/router";
+import { envPath } from "./utils/dotenv";
 import fs from "fs";
-import path from "path";
+import { validateApiKey, validateCookie } from "./services/robloxApi";
 
 /**
  * Sleep function to wait for a specific time (ms).
@@ -18,20 +18,17 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  * Ensures the .env file is generated, and waits until it exists before moving forward.
  */
 const ensureEnvFileCreated = async () => {
-    const envPath = path.resolve(__dirname, "../.env");
-
     if (!fs.existsSync(envPath)) {
-        generateEnvFile(envPath);
+        generateEnvFile();
 
         while (!fs.existsSync(envPath)) {
             log.info("Waiting for .env file to be created...");
-            await sleep(1);
+            await sleep(100);
         }
-
-        log.info(".env file created successfully, reloading environment variables...");
     }
 
-    dotenv.config();
+    dotenv.config({ path: envPath });
+    return true;
 };
 
 const start = async () => {
@@ -40,8 +37,10 @@ const start = async () => {
     const app = express();
     const PORT = 5544;
 
-    const cookie = await getCookieFromUserInput();
-    await getApiKeyFromUserInput(cookie);
+    const cookie = await getEnvInput("ROBLOSECURITY_COOKIE", validateCookie, true);
+    const apiKey = await getEnvInput("API_KEY", (key) => validateApiKey(key, cookie), true);
+    //const cookie = await getCookieFromUserInput();
+    //await getApiKeyFromUserInput(cookie);
 
     app.use(express.json());
     app.use("/api", router);

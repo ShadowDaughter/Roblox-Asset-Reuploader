@@ -1,9 +1,8 @@
 import express from "express";
-import axios from "axios";
-import { getCookieFromEnv } from "../utils/cookie";
+import got from "got";
 import { publishAssetAsync } from "../services/assetPublisher";
 import { log } from "../utils/logger";
-import { getApiKeyFromEnv } from "../utils/apiKey";
+import { getEnvValue } from "../utils/dotenv";
 
 const router = express.Router();
 let hasStarted = false;
@@ -35,7 +34,8 @@ const validateAsset = async (
 ): Promise<number[]> => {
     try {
         const assetIdsString = assetIds.join(",");
-        const response = await axios.get(`https://develop.roblox.com/v1/assets?assetIds=${assetIdsString}`, {
+        const response = await got(`https://develop.roblox.com/v1/assets?assetIds=${assetIdsString}`, {
+            method: "GET",
             headers: {
                 "Content-Type": "application/xml",
                 "User-Agent": "Roblox/Linux",
@@ -44,7 +44,8 @@ const validateAsset = async (
             },
         });
 
-        const assets = Array.isArray(response.data.data) ? response.data.data : [response.data.data];
+        const responseData = JSON.parse(response.body.toString());
+        const assets = Array.isArray(responseData.data) ? responseData.data : [responseData.data];
         const validAssets: number[] = [];
 
         for (const asset of assets) {
@@ -71,7 +72,7 @@ const validateAsset = async (
 
         return validAssets;
     } catch (error: any) {
-        log.error(`Error while validating assets: ${error.message || error}`);
+        log.error(`Error while validating assets: ${error}`);
         return [];
     }
 };
@@ -90,8 +91,8 @@ const bulkPublishAssetsAsync = async (
     creatorId: number,
     isGroup: boolean
 ): Promise<Record<string, string>> => {
-    const cookie = (await getCookieFromEnv()) as string;
-    const apiKey = (await getApiKeyFromEnv()) as string;
+    const cookie = (await getEnvValue("ROBLOSECURITY_COOKIE")) as string;
+    const apiKey = (await getEnvValue("API_KEY")) as string;
     const result: Record<string, string> = {};
 
     const validAssetIds = await validateAsset(assetIds, assetType, cookie, apiKey, creatorId);
@@ -165,7 +166,6 @@ router.post("/", async (req, res) => {
     hasStarted = true;
 
     const result = await bulkPublishAssetsAsync(assetType, assetIds, creatorId, isGroup);
-
     if (result) {
         completedAnimations = result;
         res.status(200).send("Upload started successfully.");

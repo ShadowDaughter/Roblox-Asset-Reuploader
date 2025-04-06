@@ -3,22 +3,29 @@
     "version": "1.0.0",
     "description": "A tool to easily reupload animations from one account to another.",
     "main": "src/index.ts",
+    "bin": "dist/index.js",
     "author": "Hakai",
     "license": "GPL-3.0-only",
     "scripts": {
-        "dev": "ts-node src/index.ts"
+        "start": "node dist/index.js",
+        "dev": "ts-node src/index.ts",
+        "dev:clear-env": "del .env && ts-node src/index.ts",
+        "build": "tsc && pkg dist/index.js --target win-x64 --output dist/roblox-animation-reuploader.exe --options experimental-require-module"
     },
     "dependencies": {
-        "axios": "^1.8.4",
         "dotenv": "^16.4.7",
         "express": "^5.1.0",
         "fs": "^0.0.1-security",
+        "got": "11.8.6",
         "readline-sync": "^1.4.10"
     },
     "devDependencies": {
         "@types/express": "^5.0.1",
+        "@types/got": "^9.6.12",
         "@types/node": "^22.14.0",
+        "@types/node-fetch": "^2.6.12",
         "@types/readline-sync": "^1.4.8",
+        "@yao-pkg/pkg": "^6.3.2",
         "ts-node": "^10.9.2",
         "typescript": "^5.8.2"
     }

@@ -1,4 +1,4 @@
-import axios from "axios";
+import got from "got";
 import { log } from "../utils/logger";
 import { getCsrfToken } from "./robloxApi";
 
@@ -7,7 +7,7 @@ import { getCsrfToken } from "./robloxApi";
  * @param {number} ms - The time to sleep in milliseconds.
  * @returns {Promise<void>} - A promise that resolves after the specified time.
  */
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Retrieves animation data from the Roblox API.
@@ -17,14 +17,14 @@ const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  * @param {number} oldId - The old ID of the animation to retrieve.
  * @returns {Promise<string | null>} - The animation data as a string or null if failed.
  */
-const retrieveAnimationData = async (cookie: string, apiKey: string, oldId: number) => {
+const retrieveAnimationData = async (cookie: string, apiKey: string, oldId: number): Promise<string | null> => {
     let retries = 0;
     let animationData = null;
 
     while (retries < 3) {
         try {
-            const dataResponse = await axios.get(`https://assetdelivery.roblox.com/v1/asset/?id=${oldId}`, {
-                responseType: "text",
+            const response = await got(`https://assetdelivery.roblox.com/v1/asset/?id=${oldId}`, {
+                method: "GET",
                 headers: {
                     "Content-Type": "application/xml",
                     "User-Agent": "Roblox/Linux",
@@ -33,20 +33,17 @@ const retrieveAnimationData = async (cookie: string, apiKey: string, oldId: numb
                 },
             });
 
-            animationData = dataResponse.data;
+            const responseData: any = response.body;
+            animationData = responseData;
             break;
         } catch (error: any) {
             retries++;
 
             if (retries === 3) {
-                log.error(
-                    `Failed to retrieve Asset data for ${oldId}: [${error.response.status}]: ${error.response.statusText}`
-                );
+                log.error(`Failed to retrieve Asset data for ${oldId}: ${error.message}.`);
                 break;
             } else {
-                log.error(
-                    `Failed to retrieve Asset data for ${oldId}: [${error.response.status}]: ${error.response.statusText}; Retrying...`
-                );
+                log.error(`Failed to retrieve Asset data for ${oldId}: ${error.message}; Retrying...`);
             }
 
             await sleep(1);
@@ -86,8 +83,9 @@ export const publishAssetAsync = async (
                 "https://www.roblox.com/ide/publish/uploadnewanimation?" +
                 "AllID=1&assetTypeName=Animation&genreTypeId=1&" +
                 "name=Animation&ispublic=false&allowComments=false";
-
-            const publishResponse = await axios.post(animUrl, animationData, {
+            const body: string = animationData!;
+            const response = await got(animUrl, {
+                method: "POST",
                 headers: {
                     "Content-Type": "application/xml",
                     "User-Agent": "Roblox/Linux",
@@ -95,20 +93,19 @@ export const publishAssetAsync = async (
                     Cookie: `.ROBLOSECURITY=${cookie}`,
                     Authorization: `Bearer ${apiKey}`,
                 },
+                body,
             });
 
-            newAnimationId = publishResponse.data;
+            newAnimationId = response.body;
             break;
         } catch (error: any) {
             retries++;
 
             if (retries === 3) {
-                log.error(`Failed to publish Asset ${oldId}: [${error.response.status}]: ${error.response.statusText}`);
+                log.error(`Failed to publish Asset ${oldId}: ${error.message}.`);
                 break;
             } else {
-                log.error(
-                    `Failed to publish Asset ${oldId}: [${error.response.status}]: ${error.response.statusText}; Retrying...`
-                );
+                log.error(`Failed to publish Asset ${oldId}: ${error.message}; Retrying...`);
             }
 
             await sleep(1);
