@@ -1,7 +1,7 @@
 {
-    "name": "roblox-animation-reuploader",
+    "name": "roblox-asset-reuploader",
     "version": "1.0.0",
-    "description": "A tool to easily reupload animations from one account to another.",
+    "description": "A tool to easily transfer animations and audios from one account to another.",
     "main": "src/index.ts",
     "bin": "dist/index.js",
     "author": "Hakai",
@@ -10,7 +10,7 @@
         "start": "node dist/index.js",
         "dev": "ts-node src/index.ts",
         "dev:clear-env": "del .env && ts-node src/index.ts",
-        "build": "tsc && pkg dist/index.js --target win-x64 --output dist/roblox-animation-reuploader.exe --options experimental-require-module"
+        "build": "tsc && pkg dist/index.js --target win-x64 --output \"dist/Roblox Asset Reuploader.exe\" --options experimental-require-module"
     },
     "dependencies": {
         "dotenv": "^16.4.7",
