@@ -6,7 +6,7 @@ import { log } from "./utils/logger";
 import router from "./routes/router";
 import { envPath } from "./utils/dotenv";
 import fs from "fs";
-import { validateApiKey, validateCookie } from "./services/robloxApi";
+import { getCsrfToken, validateCookie } from "./services/robloxApi";
 
 /**
  * Sleep function to wait for a specific time (ms).
@@ -31,6 +31,12 @@ const ensureEnvFileCreated = async () => {
     return true;
 };
 
+/**
+ * Starts the Roblox Asset Reuploader.
+ * 
+ * Ensures the environment is set up, validates required inputs, 
+ * initializes the Express server, and sets up API routes.
+ */
 const start = async () => {
     await ensureEnvFileCreated();
 
@@ -38,9 +44,8 @@ const start = async () => {
     const PORT = 5544;
 
     const cookie = await getEnvInput("ROBLOSECURITY_COOKIE", validateCookie, true);
-    const apiKey = await getEnvInput("API_KEY", (key) => validateApiKey(key, cookie), true);
-    //const cookie = await getCookieFromUserInput();
-    //await getApiKeyFromUserInput(cookie);
+    await getCsrfToken(cookie);
+    //await getEnvInput("API_KEY", validateApiKey, true);
 
     app.use(express.json());
     app.use("/api", router);

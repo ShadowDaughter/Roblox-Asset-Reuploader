@@ -2,7 +2,8 @@ import got from "got";
 import { log } from "../utils/logger";
 
 const ROBLOX_AUTH_URL = "https://users.roblox.com/v1/users/authenticated";
-const ROBLOX_PERMISSIONS_URL = "https://assetdelivery.roblox.com/v1/asset/?id=118338324636142";
+const ROBLOX_LOGOUT_URL = "https://auth.roblox.com/v2/logout";
+const ROBLOX_ASSETS_URL = "https://apis.roblox.com/assets/v1/assets/14215126016";
 
 /**
  * Validates if the provided cookie is valid by making a request to Roblox's API.
@@ -18,7 +19,7 @@ export const validateCookie = async (cookie: string): Promise<boolean> => {
         const response = await got(ROBLOX_AUTH_URL, {
             method: "GET",
             headers: {
-                Cookie: `.ROBLOSECURITY=${cookie}`,
+                Cookie: `.ROBLOSECURITY=${cookie}`
             },
         });
 
@@ -39,25 +40,12 @@ export const validateCookie = async (cookie: string): Promise<boolean> => {
  */
 export const getCsrfToken = async (cookie: string): Promise<string> => {
     try {
-        const response = await got("https://auth.roblox.com/v2/logout", {
+        const response = await got(ROBLOX_LOGOUT_URL, {
             method: "POST",
             headers: {
                 Cookie: `.ROBLOSECURITY=${cookie}`,
-                "User-Agent": "Roblox/Linux",
             },
         });
-
-        if (response.statusCode === 403) {
-            const token = Array.isArray(response.headers["x-csrf-token"])
-                ? response.headers["x-csrf-token"][0]
-                : response.headers["x-csrf-token"];
-
-            if (token) {
-                return token;
-            } else {
-                throw new Error("CSRF token not found in 403 response headers.");
-            }
-        }
 
         throw new Error(`Expected 403 response to retrieve CSRF token, but got ${response.statusCode}.`);
     } catch (error: any) {
@@ -73,7 +61,7 @@ export const getCsrfToken = async (cookie: string): Promise<string> => {
             }
         }
 
-        throw new Error(`Failed to get CSRF token: ${error.message}`);
+        throw new Error(`Failed to get CSRF token: ${error}`);
     }
 };
 
@@ -81,21 +69,16 @@ export const getCsrfToken = async (cookie: string): Promise<string> => {
  * Returns an Authorization header with the API key.
  * @returns {object} The header to be used in requests.
  */
-export const validateApiKey = async (apiKey: string, cookie: string): Promise<boolean> => {
+/*export const validateApiKey = async (apiKey: string): Promise<boolean> => {
     if (apiKey === "your-roblox-api-key") {
         return false;
     }
 
-    // Uncomment the below code if you wish to validate the API key with Roblox
-    /*
     try {
-        const response = await got(ROBLOX_PERMISSIONS_URL, {
+        const response = await got(ROBLOX_ASSETS_URL, {
             method: "GET",
             headers: {
-                Cookie: `.ROBLOSECURITY=${cookie}`,
-                Authorization: apiKey,
-                "Content-Type": "application/xml",
-                "User-Agent": "Roblox/Linux",
+                "x-api-key": apiKey,
             },
         });
 
@@ -103,7 +86,60 @@ export const validateApiKey = async (apiKey: string, cookie: string): Promise<bo
     } catch (error: any) {
         return false;
     }
-    */
+};*/
 
-    return true; // Temporary until you decide to implement API key validation.
+/**
+ * Validates asset IDs by checking type, ownership, and Roblox ownership.
+ * @param {number[]} assetIds - The asset IDs to validate.
+ * @param {string} cookie - Roblox security cookie.
+ * @param {string} expectedType - The expected asset type
+ * @param {number} creatorId - Target creator ID to match.
+ * @returns {Promise<number[]>} - A filtered list of valid asset IDs.
+ */
+export const validateAssets = async (
+    assetIds: number[],
+    cookie: string,
+    expectedType: string,
+    creatorId: number
+): Promise<number[]> => {
+    try {
+        const assetIdsString = assetIds.join(",");
+        const response = await got(`https://develop.roblox.com/v1/assets?assetIds=${assetIdsString}`, {
+            method: "GET",
+            headers: {
+                Cookie: `.ROBLOSECURITY=${cookie}`,
+            },
+        });
+
+        const responseData = JSON.parse(response.body.toString());
+        const assets = Array.isArray(responseData.data) ? responseData.data : [responseData.data];
+        const validAssets: number[] = [];
+
+        for (const asset of assets) {
+            const isTypeMatch = asset.type === expectedType;
+            const targetCreatorId = asset.creator?.targetId;
+
+            if (!isTypeMatch) {
+                log.info(`Asset ${asset.id} is not an ${expectedType}. Skipping...`);
+                continue;
+            }
+
+            if (targetCreatorId === creatorId) {
+                log.info(`Asset ${asset.id} is already owned by the uploader. Skipping...`);
+                continue;
+            }
+
+            if (targetCreatorId === 1) {
+                log.info(`Asset ${asset.id} is owned by Roblox. Skipping...`);
+                continue;
+            }
+
+            validAssets.push(asset.id);
+        }
+
+        return validAssets;
+    } catch (error: any) {
+        log.error(`Error while validating assets: ${error}`);
+        return [];
+    }
 };
