@@ -9,8 +9,9 @@
     "scripts": {
         "start": "node dist/index.js",
         "dev": "ts-node src/index.ts",
-        "dev:clear-env": "del .env && ts-node src/index.ts",
-        "build": "tsc && pkg dist/index.js --target win-x64 --output \"dist/Roblox Asset Reuploader.exe\" --options experimental-require-module"
+        "dev:clear": "del .env && ts-node src/index.ts",
+        "build": "tsc && pkg dist/index.js --target win-x64 --output \"dist/Roblox Asset Reuploader.exe\"",
+        "build:zip": "npm run build && tar -a -c -f \"dist/Roblox Asset Reuploader.zip\" -C dist \"Roblox Asset Reuploader.exe\""
     },
     "dependencies": {
         "dotenv": "^16.4.7",
