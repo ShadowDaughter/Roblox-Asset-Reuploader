@@ -43,10 +43,7 @@ const start = async () => {
     const app = express();
     const PORT = 5544;
 
-    const cookie = await getEnvInput("ROBLOSECURITY_COOKIE", validateCookie, true);
-    await getCsrfToken(cookie);
-    //await getEnvInput("API_KEY", validateApiKey, true);
-
+    await getEnvInput("ROBLOSECURITY_COOKIE", validateCookie, true);
     app.use(express.json());
     app.use("/api", router);
 

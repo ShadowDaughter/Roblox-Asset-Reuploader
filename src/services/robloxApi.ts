@@ -3,7 +3,6 @@ import { log } from "../utils/logger";
 
 const ROBLOX_AUTH_URL = "https://users.roblox.com/v1/users/authenticated";
 const ROBLOX_LOGOUT_URL = "https://auth.roblox.com/v2/logout";
-const ROBLOX_ASSETS_URL = "https://apis.roblox.com/assets/v1/assets/14215126016";
 
 /**
  * Validates if the provided cookie is valid by making a request to Roblox's API.
@@ -18,6 +17,7 @@ export const validateCookie = async (cookie: string): Promise<boolean> => {
     try {
         const response = await got(ROBLOX_AUTH_URL, {
             method: "GET",
+            responseType: "json",
             headers: {
                 Cookie: `.ROBLOSECURITY=${cookie}`
             },
@@ -42,6 +42,7 @@ export const getCsrfToken = async (cookie: string): Promise<string> => {
     try {
         const response = await got(ROBLOX_LOGOUT_URL, {
             method: "POST",
+            responseType: "json",
             headers: {
                 Cookie: `.ROBLOSECURITY=${cookie}`,
             },
@@ -66,29 +67,6 @@ export const getCsrfToken = async (cookie: string): Promise<string> => {
 };
 
 /**
- * Returns an Authorization header with the API key.
- * @returns {object} The header to be used in requests.
- */
-/*export const validateApiKey = async (apiKey: string): Promise<boolean> => {
-    if (apiKey === "your-roblox-api-key") {
-        return false;
-    }
-
-    try {
-        const response = await got(ROBLOX_ASSETS_URL, {
-            method: "GET",
-            headers: {
-                "x-api-key": apiKey,
-            },
-        });
-
-        return response.statusCode === 200;
-    } catch (error: any) {
-        return false;
-    }
-};*/
-
-/**
  * Validates asset IDs by checking type, ownership, and Roblox ownership.
  * @param {number[]} assetIds - The asset IDs to validate.
  * @param {string} cookie - Roblox security cookie.
@@ -106,12 +84,13 @@ export const validateAssets = async (
         const assetIdsString = assetIds.join(",");
         const response = await got(`https://develop.roblox.com/v1/assets?assetIds=${assetIdsString}`, {
             method: "GET",
+            responseType: "json",
             headers: {
                 Cookie: `.ROBLOSECURITY=${cookie}`,
             },
         });
 
-        const responseData = JSON.parse(response.body.toString());
+        const responseData = response.body as any;
         const assets = Array.isArray(responseData.data) ? responseData.data : [responseData.data];
         const validAssets: number[] = [];
 

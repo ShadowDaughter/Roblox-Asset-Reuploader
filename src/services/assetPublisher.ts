@@ -26,9 +26,10 @@ const retrieveAssetData = async (oldId: number, cookie: string): Promise<string 
         try {
             const response = await got(`https://assetdelivery.roblox.com/v1/asset/?id=${oldId}`, {
                 method: "GET",
+                responseType: "buffer",
                 headers: {
                     Cookie: `.ROBLOSECURITY=${cookie}`
-                },
+                }
             });
 
             const responseData: any = response.body;
@@ -89,6 +90,7 @@ export const publishAssetAsync = async (
             const body: string = assetData!;
             const response = await got(animUrl, {
                 method: "POST",
+                responseType: "buffer",
                 headers: {
                     "User-Agent": "Roblox/Linux",
                     "x-csrf-token": csrfToken,
@@ -97,7 +99,7 @@ export const publishAssetAsync = async (
                 body,
             });
 
-            newAssetId = response.body;
+            newAssetId = response.body.toString();
             break;
         } catch (error: any) {
             retries++;
