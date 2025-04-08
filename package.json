@@ -17,15 +17,11 @@
         "dotenv": "^16.4.7",
         "express": "^5.1.0",
         "fs": "^0.0.1-security",
-        "got": "11.8.6",
-        "readline-sync": "^1.4.10"
+        "got": "11.8.6"
     },
     "devDependencies": {
         "@types/express": "^5.0.1",
         "@types/got": "^9.6.12",
-        "@types/node": "^22.14.0",
-        "@types/node-fetch": "^2.6.12",
-        "@types/readline-sync": "^1.4.8",
         "@yao-pkg/pkg": "^6.3.2",
         "ts-node": "^10.9.2",
         "typescript": "^5.8.2"
