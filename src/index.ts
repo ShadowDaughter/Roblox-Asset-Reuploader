@@ -6,7 +6,7 @@ import { log } from "./utils/logger";
 import router from "./routes/router";
 import { envPath } from "./utils/dotenv";
 import fs from "fs";
-import { getCsrfToken, validateCookie } from "./services/robloxApi";
+import { validateCookie } from "./services/robloxApi";
 
 /**
  * Sleep function to wait for a specific time (ms).
