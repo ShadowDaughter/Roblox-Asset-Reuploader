@@ -40,29 +40,6 @@ const bulkPublishAssetsAsync = async (
         concurrencyLimit
     );
 };
-/*const bulkPublishAssetsAsync = async (
-    assetType: "Animation" | "Audio",
-    assetIds: number[],
-    creatorId: number,
-    isGroup: boolean
-): Promise<void> => {
-    const cookie = (await getEnvValue("ROBLOSECURITY_COOKIE")) as string;
-    const validAssetIds = await validateAssets(assetIds, cookie, assetType, creatorId);
-    const limit = pLimit(5);
-
-    await Promise.all(
-        validAssetIds.map((oldId) =>
-            limit(async () => {
-                const newId = await publishAssetAsync(oldId, cookie, assetType, creatorId, isGroup);
-
-                if (newId) {
-                    completedAssets[oldId.toString()] = newId;
-                    log.info(`[${oldId}] Published as ${newId}.`);
-                }
-            })
-        )
-    );
-};*/
 
 /**
  * GET / - Poll endpoint to retrieve completed asset uploads.
