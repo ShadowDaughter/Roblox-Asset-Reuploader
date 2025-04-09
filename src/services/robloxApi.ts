@@ -1,8 +1,10 @@
 import got from "got";
 import { log } from "../utils/logger";
+import chunk from "lodash.chunk";
 
 const ROBLOX_AUTH_URL = "https://users.roblox.com/v1/users/authenticated";
 const ROBLOX_LOGOUT_URL = "https://auth.roblox.com/v2/logout";
+const ROBLOX_DEVELOP_URL = "https://develop.roblox.com/v1/assets?assetIds=";
 
 /**
  * Validates if the provided cookie is valid by making a request to Roblox's API.
@@ -19,7 +21,7 @@ export const validateCookie = async (cookie: string): Promise<boolean> => {
             method: "GET",
             responseType: "json",
             headers: {
-                Cookie: `.ROBLOSECURITY=${cookie}`
+                Cookie: `.ROBLOSECURITY=${cookie}`,
             },
         });
 
@@ -81,39 +83,43 @@ export const validateAssets = async (
     creatorId: number
 ): Promise<number[]> => {
     try {
-        const assetIdsString = assetIds.join(",");
-        const response = await got(`https://develop.roblox.com/v1/assets?assetIds=${assetIdsString}`, {
-            method: "GET",
-            responseType: "json",
-            headers: {
-                Cookie: `.ROBLOSECURITY=${cookie}`,
-            },
-        });
-
-        const responseData = response.body as any;
-        const assets = Array.isArray(responseData.data) ? responseData.data : [responseData.data];
         const validAssets: number[] = [];
+        const assetChunks = chunk(assetIds, 50);
 
-        for (const asset of assets) {
-            const isTypeMatch = asset.type === expectedType;
-            const targetCreatorId = asset.creator?.targetId;
+        for (const chunk of assetChunks) {
+            const assetIdsString = chunk.join(",");
+            const response = await got(`${ROBLOX_DEVELOP_URL + assetIdsString}`, {
+                method: "GET",
+                responseType: "json",
+                headers: {
+                    Cookie: `.ROBLOSECURITY=${cookie}`,
+                },
+            });
 
-            if (!isTypeMatch) {
-                log.info(`Asset ${asset.id} is not an ${expectedType}. Skipping...`);
-                continue;
+            const responseData = response.body as any;
+            const assets = Array.isArray(responseData.data) ? responseData.data : [responseData.data];
+
+            for (const asset of assets) {
+                const isTypeMatch = asset.type === expectedType;
+                const targetCreatorId = asset.creator?.targetId;
+
+                if (!isTypeMatch) {
+                    log.info(`[${asset.id}] Asset is not of type ${expectedType}; Skipping...`);
+                    continue;
+                }
+
+                if (targetCreatorId === creatorId) {
+                    log.info(`[${asset.id}] Asset is owned by Uploader; Skipping...`);
+                    continue;
+                }
+
+                if (targetCreatorId === 1) {
+                    log.info(`[${asset.id}] Asset is owned by Roblox; Skipping...`);
+                    continue;
+                }
+
+                validAssets.push(asset.id);
             }
-
-            if (targetCreatorId === creatorId) {
-                log.info(`Asset ${asset.id} is already owned by the uploader. Skipping...`);
-                continue;
-            }
-
-            if (targetCreatorId === 1) {
-                log.info(`Asset ${asset.id} is owned by Roblox. Skipping...`);
-                continue;
-            }
-
-            validAssets.push(asset.id);
         }
 
         return validAssets;

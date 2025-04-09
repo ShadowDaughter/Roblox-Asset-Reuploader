@@ -2,7 +2,8 @@ import got from "got";
 import { log } from "../utils/logger";
 import { getCsrfToken } from "./robloxApi";
 
-const ROBLOX_PUBLISH_URL = "https://www.roblox.com/ide/publish/uploadnewanimation?"
+const ROBLOX_ASSETS_URL = "https://assetdelivery.roblox.com/v1/asset/?id=";
+const ROBLOX_PUBLISH_URL = "https://www.roblox.com/ide/publish/uploadnewanimation?";
 
 /**
  * Sleep function to wait for a specific time (ms).
@@ -24,12 +25,12 @@ const retrieveAssetData = async (oldId: number, cookie: string): Promise<string 
 
     while (retries < 3) {
         try {
-            const response = await got(`https://assetdelivery.roblox.com/v1/asset/?id=${oldId}`, {
+            const response = await got(`${ROBLOX_ASSETS_URL + oldId}`, {
                 method: "GET",
                 responseType: "buffer",
                 headers: {
-                    Cookie: `.ROBLOSECURITY=${cookie}`
-                }
+                    Cookie: `.ROBLOSECURITY=${cookie}`,
+                },
             });
 
             const responseData: any = response.body;
@@ -39,10 +40,10 @@ const retrieveAssetData = async (oldId: number, cookie: string): Promise<string 
             retries++;
 
             if (retries === 3) {
-                log.error(`Failed to retrieve Asset data for ${oldId}: ${error.message}.`);
+                log.error(`[${oldId}] Failed to retrieve Asset data: ${error}.`);
                 break;
             } else {
-                log.error(`Failed to retrieve Asset data for ${oldId}: ${error.message}; Retrying...`);
+                log.error(`[${oldId}] Failed to retrieve Asset data: ${error}; Retrying...`);
             }
 
             await sleep(1);
@@ -76,16 +77,21 @@ export const publishAssetAsync = async (
     const assetData = await retrieveAssetData(oldId, cookie);
     const csrfToken = await getCsrfToken(cookie);
 
+    if (!assetData || !csrfToken) {
+        return null;
+    }
+
     while (retries < 3) {
         try {
-            const animUrl = `${ROBLOX_PUBLISH_URL}` +
+            const animUrl =
+                `${ROBLOX_PUBLISH_URL}` +
                 `AllID=1` +
                 `&assetTypeName=${assetType}` +
                 `&name=${assetType}` +
                 `&ispublic=false` +
                 `&allowComments=false` +
                 `&isGamesAsset=False` +
-                `&groupId=${isGroup ? creatorId.toString() : ""}`
+                `&groupId=${isGroup ? creatorId.toString() : ""}`;
 
             const body: string = assetData!;
             const response = await got(animUrl, {
@@ -94,7 +100,7 @@ export const publishAssetAsync = async (
                 headers: {
                     "User-Agent": "Roblox/Linux",
                     "x-csrf-token": csrfToken,
-                    Cookie: `.ROBLOSECURITY=${cookie}`
+                    Cookie: `.ROBLOSECURITY=${cookie}`,
                 },
                 body,
             });
@@ -105,10 +111,10 @@ export const publishAssetAsync = async (
             retries++;
 
             if (retries === 3) {
-                log.error(`Failed to publish Asset ${oldId}: ${error.message}.`);
+                log.error(`[${oldId}] Failed to publish Asset: ${error}.`);
                 break;
             } else {
-                log.error(`Failed to publish Asset ${oldId}: ${error.message}; Retrying...`);
+                log.error(`[${oldId}] Failed to publish Asset: ${error}; Retrying...`);
             }
 
             await sleep(1);

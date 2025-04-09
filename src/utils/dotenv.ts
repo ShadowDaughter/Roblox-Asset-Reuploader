@@ -4,8 +4,7 @@ import { log } from "./logger";
 import dotenv from "dotenv";
 
 const envContent = `# .env file for storing the uploader information
-ROBLOSECURITY_COOKIE=your-roblox-cookie
-API_KEY=your-roblox-api-key`;
+ROBLOSECURITY_COOKIE=your-roblox-cookie`;
 
 export const envPath = path.join(process.cwd(), ".env");
 
