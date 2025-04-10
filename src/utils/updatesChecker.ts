@@ -1,16 +1,15 @@
+import got from "got";
 import path from "path";
 import { log } from "./logger";
-import fs from "fs";
 import os from "os";
+import fs from "fs";
 import AdmZip from "adm-zip";
-import got from "got";
 import semver from "semver";
 import { prompt } from "./inputManager";
 
 const CURRENT_VERSION = "1.1.3";
 const GITHUB_API_URL = "https://api.github.com/repos/ShadowDaughter/Roblox-Asset-Reuploader/releases/latest";
 const ZIP_NAME = "Roblox.Asset.Reuploader.zip";
-const TEMP_HELPER = path.join(process.cwd(), "update-helper.js");
 
 /**
  * Downloads the latest zip file from GitHub, extracts it, replaces the current executable, and deletes the zip file.
