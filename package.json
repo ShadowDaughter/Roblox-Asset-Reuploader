@@ -10,7 +10,7 @@
         "start": "node dist/src/index.js",
         "dev": "ts-node src/index.ts",
         "dev:clear": "del .env && ts-node src/index.ts",
-        "build": "tsc && pkg dist/src/index.js --target win-x64 --output \"dist/Roblox Asset Reuploader.exe\"",
+        "build": "tsc && pkg dist/src/index.js --compress GZip --target win-x64 --output \"dist/Roblox Asset Reuploader.exe\"",
         "build:zip": "npm run build && tar -a -c -f \"dist/Roblox Asset Reuploader.zip\" -C dist \"Roblox Asset Reuploader.exe\""
     },
     "dependencies": {
