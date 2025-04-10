@@ -1,16 +1,9 @@
 import got from "got";
-import { log } from "../utils/logger";
+import { log, sleep } from "../utils/logger";
 import { getCsrfToken } from "./robloxApi";
 
 const ROBLOX_ASSETS_URL = "https://assetdelivery.roblox.com/v1/asset/?id=";
 const ROBLOX_PUBLISH_URL = "https://www.roblox.com/ide/publish/uploadnewanimation?";
-
-/**
- * Sleep function to wait for a specific time (ms).
- * @param {number} ms - The time to sleep in milliseconds.
- * @returns {Promise<void>} - A promise that resolves after the specified time.
- */
-const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * Retrieves asset data from the Roblox API.
@@ -43,10 +36,10 @@ const retrieveAssetData = async (oldId: number, cookie: string): Promise<string 
                 log.error(`[${oldId}] Failed to retrieve Asset data: ${error}.`);
                 break;
             } else {
-                log.error(`[${oldId}] Failed to retrieve Asset data: ${error}; Retrying...`);
+                log.warn(`[${oldId}] Failed to retrieve Asset data: ${error}; Retrying...`);
             }
 
-            await sleep(1);
+            await sleep(10);
             continue;
         }
     }
@@ -114,10 +107,10 @@ export const publishAssetAsync = async (
                 log.error(`[${oldId}] Failed to publish Asset: ${error}.`);
                 break;
             } else {
-                log.error(`[${oldId}] Failed to publish Asset: ${error}; Retrying...`);
+                log.warn(`[${oldId}] Failed to publish Asset: ${error}; Retrying...`);
             }
 
-            await sleep(1);
+            await sleep(10);
             continue;
         }
     }

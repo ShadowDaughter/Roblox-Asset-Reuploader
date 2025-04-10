@@ -1,9 +1,9 @@
 import express from "express";
-import { publishAssetAsync } from "../services/assetPublisher";
-import { log } from "../utils/logger";
-import { getEnvValue } from "../utils/dotenv";
+import { getEnvValue } from "../utils/filesManager";
 import { validateAssets } from "../services/robloxApi";
 import { processWithConcurrencyLimit } from "../utils/concurrencyLimits";
+import { publishAssetAsync } from "../services/assetPublisher";
+import { log, sleep } from "../utils/logger";
 
 const router = express.Router();
 let hasStarted = false;
@@ -35,6 +35,8 @@ const bulkPublishAssetsAsync = async (
                 completedAssets[oldId.toString()] = newId;
                 log.info(`[${oldId}] Published as ${newId}.`);
             }
+
+            await sleep(10);
         }),
 
         concurrencyLimit

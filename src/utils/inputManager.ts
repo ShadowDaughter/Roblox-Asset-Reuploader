@@ -1,5 +1,4 @@
-import { updateEnvFile } from "./dotenv";
-import { getEnvValue } from "./dotenv";
+import { getEnvValue, updateEnvFile } from "./filesManager";
 import { log } from "./logger";
 
 /**
@@ -19,7 +18,7 @@ const clearLines = (lines: number) => {
  * @param mask Whether to mask the user input (like passwords or tokens).
  * @returns The trimmed user input.
  */
-const prompt = (question: string, mask: boolean = false): Promise<string> => {
+export const prompt = (question: string, mask: boolean = false): Promise<string> => {
     return new Promise((resolve) => {
         process.stdout.write(question);
         const input: string[] = [];

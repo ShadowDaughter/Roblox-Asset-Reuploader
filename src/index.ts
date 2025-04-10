@@ -1,44 +1,21 @@
-import express from "express";
-import dotenv from "dotenv";
-import { generateEnvFile } from "./utils/dotenv";
-import { getEnvInput } from "./utils/inputManager";
+import { generateLogsFile, generateEnvFile } from "./utils/filesManager";
+import { checkForUpdates } from "./utils/updatesChecker";
 import { log } from "./utils/logger";
-import router from "./routes/router";
-import { envPath } from "./utils/dotenv";
-import fs from "fs";
+import { getEnvInput } from "./utils/inputManager";
 import { validateCookie } from "./services/robloxApi";
-
-/**
- * Sleep function to wait for a specific time (ms).
- * @param {number} ms - The time to sleep in milliseconds.
- */
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-/**
- * Ensures the .env file is generated, and waits until it exists before moving forward.
- */
-const ensureEnvFileCreated = async () => {
-    if (!fs.existsSync(envPath)) {
-        generateEnvFile();
-
-        while (!fs.existsSync(envPath)) {
-            log.info("Waiting for .env file to be created...");
-            await sleep(100);
-        }
-    }
-
-    dotenv.config({ path: envPath });
-    return true;
-};
+import express from "express";
+import router from "./routes/router";
 
 /**
  * Starts the Roblox Asset Reuploader.
- * 
- * Ensures the environment is set up, validates required inputs, 
+ *
+ * Ensures the environment is set up, validates required inputs,
  * initializes the Express server, and sets up API routes.
  */
 const start = async () => {
-    await ensureEnvFileCreated();
+    await generateLogsFile();
+    await generateEnvFile();
+    await checkForUpdates();
 
     const app = express();
     const PORT = 5544;
@@ -52,4 +29,5 @@ const start = async () => {
     });
 };
 
+process.title = "Roblox Asset Reuploader";
 start();

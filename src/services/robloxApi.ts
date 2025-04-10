@@ -108,6 +108,11 @@ export const validateAssets = async (
                     continue;
                 }
 
+                if (asset.isModerated) {
+                    log.warn(`[${asset.id}] Asset is moderated; Skipping...`);
+                    continue;
+                }
+
                 if (targetCreatorId === creatorId) {
                     log.info(`[${asset.id}] Asset is owned by Uploader; Skipping...`);
                     continue;

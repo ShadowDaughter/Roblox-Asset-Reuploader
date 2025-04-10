@@ -1,29 +1,33 @@
 {
     "name": "roblox-asset-reuploader",
-    "version": "1.1.2",
+    "version": "1.1.3",
     "description": "A tool to easily transfer animations and audios from one account to another.",
     "main": "src/index.ts",
-    "bin": "dist/index.js",
+    "bin": "dist/src/index.js",
     "author": "Hakai",
     "license": "GPL-3.0-only",
     "scripts": {
-        "start": "node dist/index.js",
+        "start": "node dist/src/index.js",
         "dev": "ts-node src/index.ts",
         "dev:clear": "del .env && ts-node src/index.ts",
-        "build": "tsc && pkg dist/index.js --target win-x64 --output \"dist/Roblox Asset Reuploader.exe\"",
+        "build": "tsc && pkg dist/src/index.js --target win-x64 --output \"dist/Roblox Asset Reuploader.exe\"",
         "build:zip": "npm run build && tar -a -c -f \"dist/Roblox Asset Reuploader.zip\" -C dist \"Roblox Asset Reuploader.exe\""
     },
     "dependencies": {
+        "adm-zip": "^0.5.16",
         "dotenv": "^16.4.7",
         "express": "^5.1.0",
         "fs": "^0.0.1-security",
         "got": "11.8.6",
-        "lodash.chunk": "^4.2.0"
+        "lodash.chunk": "^4.2.0",
+        "semver": "^7.7.1"
     },
     "devDependencies": {
+        "@types/adm-zip": "^0.5.7",
         "@types/express": "^5.0.1",
         "@types/got": "^9.6.12",
         "@types/lodash.chunk": "^4.2.9",
+        "@types/semver": "^7.7.0",
         "@yao-pkg/pkg": "^6.4.0",
         "ts-node": "^10.9.2",
         "typescript": "^5.8.2"
