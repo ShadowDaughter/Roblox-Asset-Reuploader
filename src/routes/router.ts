@@ -48,12 +48,16 @@ const bulkPublishAssetsAsync = async (
     );
 };
 
+/**
+ * GET /connect - Endpoint to check the server connection.
+ * Returns the current version of the application.
+ */
 router.get("/connect", (_, res) => {
     res.status(200).send(CURRENT_VERSION);
 });
 
 /**
- * GET / - Poll endpoint to retrieve completed asset uploads.
+ * GET /status - Poll endpoint to retrieve completed asset uploads.
  * Returns 200 if reupload is finished, 200 if idle, or JSON result of completed uploads.
  */
 router.get("/status", (_, res) => {
@@ -80,7 +84,7 @@ router.get("/status", (_, res) => {
 });
 
 /**
- * POST / - Start a new batch upload of animations or audio assets.
+ * POST /post - Start a new batch upload of animations or audio assets.
  * Expects: assetType, assetIds, creatorId, isGroup in body.
  */
 router.post("/upload", async (req, res) => {
