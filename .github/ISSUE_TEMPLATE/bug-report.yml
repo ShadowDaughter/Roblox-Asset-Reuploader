@@ -1,0 +1,32 @@
+name: Bug Report
+about: File a bug report
+title: "[BUG]"
+labels: bug
+assignees: ''
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time to fill out this bug report, please make sure that you include all necessary details in your post.
+  - type: input
+    id: version
+    attributes:
+      label: Tool version
+      description: If you're aware of using an outdated version, please describe why you chose to do this below.
+      placeholder: Latest.
+    validations:
+      required: true
+  - type: textarea
+    id: bug-description
+    attributes:
+      label: Descripe the bug
+      description: Please go into as much detail as possible as this helps reach a solution sooner.
+      placeholder: Describe what happened and what you expected to happen instead.
+      value: "A bug happened!"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant log output
+      description: Please copy and paste any relevant log output. This will be automatically formatted into code, so no need for backticks.
+      render: shell
