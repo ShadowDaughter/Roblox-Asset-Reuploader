@@ -4,11 +4,13 @@ import { validateAssets } from "../services/robloxApi";
 import { processWithConcurrencyLimit } from "../utils/concurrencyLimits";
 import { publishAssetAsync } from "../services/assetPublisher";
 import { log, sleep } from "../utils/logger";
+import { CURRENT_VERSION } from "../utils/updatesChecker";
 
-const router = express.Router();
-let hasStarted = false;
-let hasFinished = false;
+let activeTasks = 0;
 let completedAssets: Record<string, string> = {};
+const router = express.Router();
+let hasFinished = false;
+let hasStarted = false;
 
 /**
  * Publishes a batch of assets and maps old IDs to new uploaded IDs.
@@ -30,6 +32,8 @@ const bulkPublishAssetsAsync = async (
 
     await processWithConcurrencyLimit(
         validAssetIds.map((oldId) => async () => {
+            activeTasks++;
+
             const newId = await publishAssetAsync(oldId, cookie, assetType, creatorId, isGroup);
             if (newId) {
                 completedAssets[oldId.toString()] = newId;
@@ -37,25 +41,30 @@ const bulkPublishAssetsAsync = async (
             }
 
             await sleep(10);
+            activeTasks--;
         }),
 
         concurrencyLimit
     );
 };
 
+router.get("/connect", (_, res) => {
+    res.status(200).send(CURRENT_VERSION);
+});
+
 /**
  * GET / - Poll endpoint to retrieve completed asset uploads.
- * Returns 200 if reupload is finished, 204 if idle, or JSON result of completed uploads.
+ * Returns 200 if reupload is finished, 200 if idle, or JSON result of completed uploads.
  */
-router.get("/status", (req, res) => {
-    const isUploadDone = hasFinished && Object.keys(completedAssets).length === 0;
+router.get("/status", (_, res) => {
+    const isUploadDone = hasFinished && hasStarted && activeTasks === 0 && Object.keys(completedAssets).length === 0;
 
     if (isUploadDone) {
         log.info("Finished uploading all assets!");
         log.info("You may close this terminal, or leave it open to reupload more assets.");
 
-        hasStarted = false;
         hasFinished = false;
+        hasStarted = false;
         res.status(200).send("Done");
         return;
     }
@@ -67,7 +76,7 @@ router.get("/status", (req, res) => {
         return;
     }
 
-    res.status(200).send("Uploading");
+    res.status(200).send("Idle");
 });
 
 /**
@@ -82,16 +91,20 @@ router.post("/upload", async (req, res) => {
 
     const { assetType, assetIds, creatorId, isGroup } = req.body;
     if (!assetType || !assetIds || !creatorId || isGroup === undefined || isGroup === null) {
-        hasFinished = true;
         log.error("Missing data, your plugin may be out of date. Aborting reupload.");
         res.status(400).send("MissingData");
+
+        hasFinished = false;
+        hasStarted = false;
         return;
     }
 
     if (!Array.isArray(assetIds) || assetIds.length === 0) {
-        hasFinished = true;
         log.error("Invalid asset IDs provided. Aborting reupload.");
         res.status(400).send("InvalidAssetIds");
+
+        hasFinished = false;
+        hasStarted = false;
         return;
     }
 
@@ -104,7 +117,6 @@ router.post("/upload", async (req, res) => {
             hasFinished = true;
         })
         .catch((error) => {
-            hasFinished = true;
             log.error(`Error during bulk upload: ${error}`);
         });
 

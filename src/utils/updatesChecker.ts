@@ -7,7 +7,7 @@ import AdmZip from "adm-zip";
 import semver from "semver";
 import { prompt } from "./inputManager";
 
-const CURRENT_VERSION = "1.1.3";
+export const CURRENT_VERSION = "1.1.4";
 const GITHUB_API_URL = "https://api.github.com/repos/ShadowDaughter/Roblox-Asset-Reuploader/releases/latest";
 const ZIP_NAME = "Roblox.Asset.Reuploader.zip";
 
@@ -118,7 +118,7 @@ export const checkForUpdates = async (): Promise<boolean> => {
             if (userInput.toLowerCase() === "yes" || userInput.toLowerCase() === "y") {
                 await downloadAndReplaceExecutable(downloadUrl);
             } else {
-                log.debug("Skipping update...");
+                log.warn("Skipping update...");
             }
 
             return true;
