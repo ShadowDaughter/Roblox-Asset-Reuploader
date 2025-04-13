@@ -62,7 +62,7 @@ export async function getRobloxPluginsFolder(): Promise<string> {
 
 /**
  * Downloads and installs the Roblox plugin to the user's local plugin folder.
- * * @returns {Promise<boolean>} True if the installation was successful, false otherwise.
+ * @returns {Promise<boolean>} True if the installation was successful, false otherwise.
  */
 export async function installRobloxPlugin(): Promise<boolean> {
     try {
