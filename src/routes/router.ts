@@ -20,12 +20,12 @@ let hasStarted = false;
  * @param {boolean} isGroup - Whether the upload is under a group.
  * @returns {Promise<Record<string, string>>} - A map of old IDs to new uploaded asset IDs.
  */
-const bulkPublishAssetsAsync = async (
+async function bulkPublishAssetsAsync(
     assetType: "Animation" | "Audio",
     assetIds: number[],
     creatorId: number,
     isGroup: boolean
-): Promise<void> => {
+): Promise<void> {
     const cookie = (await getEnvValue("ROBLOSECURITY_COOKIE")) as string;
     const validAssetIds = await validateAssets(assetIds, cookie, assetType, creatorId);
     const concurrencyLimit = 5;
@@ -34,19 +34,24 @@ const bulkPublishAssetsAsync = async (
         validAssetIds.map((oldId) => async () => {
             activeTasks++;
 
-            const newId = await publishAssetAsync(oldId, cookie, assetType, creatorId, isGroup);
-            if (newId) {
-                completedAssets[oldId.toString()] = newId;
-                log.info(`[${oldId}] Published as ${newId}.`);
+            try {
+                const newId = await publishAssetAsync(oldId, cookie, assetType, creatorId, isGroup);
+                if (newId) {
+                    completedAssets[oldId.toString()] = newId;
+                    log.info(`[${oldId}] Published as ${newId}.`);
+                }
+            } catch (error: Error | any) {
+                log.error(error);
+                activeTasks--;
+            } finally {
+                await sleep(500);
+                activeTasks--;
             }
-
-            await sleep(10);
-            activeTasks--;
         }),
 
         concurrencyLimit
     );
-};
+}
 
 /**
  * GET /connect - Endpoint to check the server connection.

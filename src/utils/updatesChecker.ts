@@ -6,18 +6,21 @@ import fs from "fs";
 import AdmZip from "adm-zip";
 import semver from "semver";
 import { prompt } from "./inputManager";
+import { spawn } from "child_process";
 
-export const CURRENT_VERSION = "1.1.4";
+export const CURRENT_VERSION = "1.2.0";
 const GITHUB_API_URL = "https://api.github.com/repos/ShadowDaughter/Roblox-Asset-Reuploader/releases/latest";
 const ZIP_NAME = "Roblox.Asset.Reuploader.zip";
+type LatestRelease = {
+    tag_name: string;
+    assets: { name: string; browser_download_url: string }[];
+};
 
 /**
  * Downloads the latest zip file from GitHub, extracts it, replaces the current executable, and deletes the zip file.
  * @param {string} downloadUrl - The URL of the latest zip file.
  */
-import { spawn } from "child_process";
-
-const downloadAndReplaceExecutable = async (downloadUrl: string): Promise<void> => {
+async function downloadAndReplaceExecutable(downloadUrl: string): Promise<void> {
     try {
         log.info("Downloading the latest version...");
         const response = await got(downloadUrl, { responseType: "buffer" });
@@ -85,24 +88,21 @@ const downloadAndReplaceExecutable = async (downloadUrl: string): Promise<void> 
     } catch (error: any) {
         log.error(`Failed to update the application: ${error}`);
     }
-};
+}
 
 /**
  * Checks if the current version is outdated by comparing it with the latest release on GitHub.
  * Prompts the user to update if a new version is available.
  * @returns {Promise<boolean>} - Returns true if an update is available, otherwise false.
  */
-export const checkForUpdates = async (): Promise<boolean> => {
+export async function checkForUpdates(): Promise<boolean> {
     try {
         const response = await got(GITHUB_API_URL, {
             method: "GET",
             responseType: "json",
         });
 
-        const latestRelease = response.body as {
-            tag_name: string;
-            assets: { name: string; browser_download_url: string }[];
-        };
+        const latestRelease = response.body as LatestRelease;
         const latestVersion = latestRelease.tag_name.replace(/^v/, "");
         const downloadUrl = latestRelease.assets.find((asset) => asset.name === ZIP_NAME)?.browser_download_url;
 
@@ -136,4 +136,4 @@ export const checkForUpdates = async (): Promise<boolean> => {
         log.error(`Failed to check for updates: ${error}`);
         return false;
     }
-};
+}

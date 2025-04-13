@@ -28,4 +28,6 @@ export const log = {
  * @param {number} ms - The time to sleep in milliseconds.
  * @returns {Promise<void>} - A promise that resolves after the specified time.
  */
-export const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
+export function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+}
